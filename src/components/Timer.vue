@@ -122,11 +122,7 @@ const configuredTimeInSeconds = computed(() => parseTimeInput(timeInput.value))
 const configuredEmomIntervalSeconds = computed(() => parseTimeInput(emomIntervalInput.value))
 const configuredEmomRestSeconds = computed(() => parseTimeInput(emomRestInput.value))
 
-const formattedPrimaryTime = computed(() =>
-  mode.value === 'EMOM'
-    ? formatSeconds(remainingSeconds.value)
-    : formatSeconds(remainingSeconds.value),
-)
+const formattedPrimaryTime = computed(() => formatSeconds(remainingSeconds.value))
 const modeLabel = computed(() => modeOptions.find((item) => item.value === mode.value)?.label || 'Timer')
 const primaryLabel = computed(() =>
   mode.value === 'EMOM'
