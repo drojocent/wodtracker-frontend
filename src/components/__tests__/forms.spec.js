@@ -1,0 +1,104 @@
+import { mount } from '@vue/test-utils'
+import { describe, expect, it } from 'vitest'
+import ProfileForm from '@/components/ProfileForm.vue'
+import ProposalForm from '@/components/ProposalForm.vue'
+import ProposalReviewCard from '@/components/ProposalReviewCard.vue'
+import WodCard from '@/components/WodCard.vue'
+import WodForm from '@/components/WodForm.vue'
+
+describe('additional form and card components', () => {
+  it('emits profile payloads based on the current profile', async () => {
+    const wrapper = mount(ProfileForm, {
+      props: {
+        profile: {
+          name: 'Dani',
+          email: 'dani@example.com',
+          weight: 80,
+          height: 180,
+        },
+      },
+    })
+
+    await wrapper.find('#profile-name').setValue('Daniel')
+    await wrapper.find('form').trigger('submit.prevent')
+
+    expect(wrapper.emitted('submit')[0][0]).toEqual({
+      name: 'Daniel',
+      weight: 80,
+      height: 180,
+    })
+  })
+
+  it('emits proposal payloads with the selected format', async () => {
+    const wrapper = mount(ProposalForm)
+
+    await wrapper.find('#proposal-title').setValue('Open Prep')
+    await wrapper.find('#proposal-type').setValue('AMRAP')
+    await wrapper.find('#proposal-description').setValue('Workout')
+    await wrapper.find('form').trigger('submit.prevent')
+
+    expect(wrapper.emitted('submit')[0][0]).toEqual({
+      name: 'Open Prep',
+      title: 'Open Prep',
+      type: 'AMRAP',
+      description: 'Workout',
+    })
+  })
+
+  it('renders proposal review details and emits moderation actions', async () => {
+    const wrapper = mount(ProposalReviewCard, {
+      props: {
+        proposal: {
+          name: 'Open Prep',
+          type: 'EMOM',
+          authorName: 'Dani',
+          description: 'Workout',
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('Dani')
+    await wrapper.findAll('button')[0].trigger('click')
+    await wrapper.findAll('button')[1].trigger('click')
+
+    expect(wrapper.emitted('approve')).toBeTruthy()
+    expect(wrapper.emitted('reject')).toBeTruthy()
+  })
+
+  it('renders wod cards and wod form payloads', async () => {
+    const card = mount(WodCard, {
+      props: {
+        wod: {
+          name: 'Fran',
+          description: '21-15-9',
+          type: 'FOR_TIME',
+          date: '2026-04-20',
+        },
+      },
+    })
+
+    expect(card.text()).toContain('Fran')
+    expect(card.text()).toContain('FOR_TIME')
+
+    const form = mount(WodForm, {
+      props: {
+        initialValue: {
+          id: 5,
+          name: 'Murph',
+          type: 'AMRAP',
+          date: '2026-04-20',
+          description: 'Hero wod',
+        },
+      },
+    })
+
+    await form.find('#wod-title').setValue('Murph 2')
+    await form.find('form').trigger('submit.prevent')
+
+    expect(form.emitted('submit')[0][0]).toMatchObject({
+      name: 'Murph 2',
+      type: 'AMRAP',
+      approved: true,
+    })
+  })
+})
