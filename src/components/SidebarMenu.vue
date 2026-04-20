@@ -1,7 +1,6 @@
 <template>
   <aside class="sidebar" :class="{ 'sidebar-mobile-open': isMobileOpen }">
     <div class="sidebar-brand">
-      <span class="sidebar-kicker">CrossFit App</span>
       <h2>WODTracker</h2>
       <p>Controla tu entrenamiento diario y tu progreso sin salir del panel.</p>
     </div>
@@ -59,6 +58,7 @@ const navItems = [
   { to: '/profile', label: 'Perfil', roles: ['USER', 'ADMIN'] },
   { to: '/proposal', label: 'Proponer WOD', roles: ['USER'] },
   { to: '/timer', label: 'Cronómetro', roles: ['USER', 'ADMIN'] },
+  { to: '/benchmarks', label: 'Benchmarks', roles: ['USER', 'ADMIN'] },
   { to: '/admin/wods', label: 'Gestionar WODs', roles: ['ADMIN'] },
   { to: '/admin/proposals', label: 'Propuestas', roles: ['ADMIN'] },
 ]

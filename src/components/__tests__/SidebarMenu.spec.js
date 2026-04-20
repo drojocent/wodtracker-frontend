@@ -44,6 +44,7 @@ describe('SidebarMenu', () => {
     })
 
     expect(wrapper.text()).toContain('Gestionar WODs')
+    expect(wrapper.text()).toContain('Benchmarks')
     expect(wrapper.classes()).toContain('sidebar-mobile-open')
 
     await wrapper.find('.sidebar-logout').trigger('click')

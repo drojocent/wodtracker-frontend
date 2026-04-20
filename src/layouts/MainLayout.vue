@@ -52,6 +52,8 @@ const titles = {
   profile: 'Mi perfil',
   proposal: 'Proponer WOD',
   timer: 'Cronómetro',
+  benchmarks: 'Benchmarks',
+  'benchmark-detail': 'Detalle del benchmark',
   'admin-wods': 'Administrar WODs',
   'admin-proposals': 'Propuestas pendientes',
 }

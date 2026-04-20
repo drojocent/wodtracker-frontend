@@ -7,6 +7,8 @@ import RegisterView from '@/views/RegisterView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import ProposalView from '@/views/ProposalView.vue'
 import TimerView from '@/views/TimerView.vue'
+import BenchmarksView from '@/views/BenchmarksView.vue'
+import BenchmarkDetailView from '@/views/BenchmarkDetailView.vue'
 import AdminWodsView from '@/views/AdminWodsView.vue'
 import AdminProposalsView from '@/views/AdminProposalsView.vue'
 
@@ -50,6 +52,18 @@ const routes = [
         path: 'timer',
         name: 'timer',
         component: TimerView,
+        meta: { requiresAuth: true, roles: ['USER', 'ADMIN'] },
+      },
+      {
+        path: 'benchmarks',
+        name: 'benchmarks',
+        component: BenchmarksView,
+        meta: { requiresAuth: true, roles: ['USER', 'ADMIN'] },
+      },
+      {
+        path: 'benchmarks/:id',
+        name: 'benchmark-detail',
+        component: BenchmarkDetailView,
         meta: { requiresAuth: true, roles: ['USER', 'ADMIN'] },
       },
       {

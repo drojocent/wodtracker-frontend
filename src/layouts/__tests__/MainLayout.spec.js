@@ -47,4 +47,25 @@ describe('MainLayout', () => {
     await wrapper.find('.mobile-menu-button').trigger('click')
     expect(wrapper.find('.sidebar-stub').text()).toBe('true')
   })
+
+  it('renders the benchmarks detail title', async () => {
+    routeMock.name = 'benchmark-detail'
+    routeMock.fullPath = '/benchmarks/1'
+
+    const wrapper = mount(MainLayout, {
+      global: {
+        stubs: {
+          SidebarMenu: {
+            template: '<div class="sidebar-stub">{{ isMobileOpen }}</div>',
+            props: ['isMobileOpen'],
+          },
+          RouterView: {
+            template: '<div class="router-view-stub" />',
+          },
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('Detalle del benchmark')
+  })
 })
