@@ -86,3 +86,59 @@ describe('wodStore', () => {
     expect(rejectProposalMock).toHaveBeenCalledWith(6)
   })
 })
+
+const getAllBenchmarksMock = vi.fn()
+const getBenchmarkByIdMock = vi.fn()
+const createBenchmarkMock = vi.fn()
+const updateBenchmarkMock = vi.fn()
+const deleteBenchmarkMock = vi.fn()
+const createBenchmarkResultMock = vi.fn()
+const getMyBenchmarkResultsMock = vi.fn()
+
+vi.mock('@/services/benchmarkService', () => ({
+  default: {
+    getAllBenchmarks: getAllBenchmarksMock,
+    getBenchmarkById: getBenchmarkByIdMock,
+    createBenchmark: createBenchmarkMock,
+    updateBenchmark: updateBenchmarkMock,
+    deleteBenchmark: deleteBenchmarkMock,
+    createResult: createBenchmarkResultMock,
+    getMyResults: getMyBenchmarkResultsMock,
+  },
+}))
+
+describe('benchmarkStore', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.clearAllMocks()
+  })
+
+  it('loads benchmark data and manages results', async () => {
+    const { useBenchmarkStore } = await import('@/stores/benchmarkStore')
+    const store = useBenchmarkStore()
+
+    getAllBenchmarksMock.mockResolvedValue([{ id: 1 }])
+    getBenchmarkByIdMock.mockResolvedValue({ id: 2, name: 'Fran' })
+    getMyBenchmarkResultsMock.mockResolvedValue([{ id: 3 }])
+    createBenchmarkResultMock.mockResolvedValue({ id: 4 })
+
+    await expect(store.loadBenchmarks()).resolves.toEqual([{ id: 1 }])
+    await expect(store.loadBenchmarkById(2)).resolves.toEqual({ id: 2, name: 'Fran' })
+    await expect(store.loadMyResults(2)).resolves.toEqual([{ id: 3 }])
+    await expect(store.createResult(2, { result: '03:45' })).resolves.toEqual({ id: 4 })
+  })
+
+  it('saves and removes benchmarks', async () => {
+    const { useBenchmarkStore } = await import('@/stores/benchmarkStore')
+    const store = useBenchmarkStore()
+
+    getAllBenchmarksMock.mockResolvedValue([{ id: 1 }])
+    createBenchmarkMock.mockResolvedValue({ id: 1, name: 'Fran' })
+    updateBenchmarkMock.mockResolvedValue({ id: 2, name: 'Murph' })
+    deleteBenchmarkMock.mockResolvedValue({ ok: true })
+
+    await expect(store.saveBenchmark({ name: 'Fran' })).resolves.toEqual({ id: 1, name: 'Fran' })
+    await expect(store.saveBenchmark({ name: 'Murph' }, 2)).resolves.toEqual({ id: 2, name: 'Murph' })
+    await expect(store.removeBenchmark(2)).resolves.toEqual({ ok: true })
+  })
+})

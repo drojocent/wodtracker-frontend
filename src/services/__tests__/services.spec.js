@@ -94,4 +94,36 @@ describe('service wrappers', () => {
       approved: true,
     })
   })
+
+  it('maps benchmark service payloads and unwraps collections', async () => {
+    const benchmarkService = (await import('@/services/benchmarkService')).default
+    wodApiClient.get.mockResolvedValueOnce({ data: { benchmarks: [{ id: 1 }] } })
+    wodApiClient.get.mockResolvedValueOnce({ data: { benchmark: { id: 2 } } })
+    wodApiClient.post.mockResolvedValueOnce({ data: { item: { id: 3 } } })
+    wodApiClient.put.mockResolvedValueOnce({ data: { data: { id: 4 } } })
+    wodApiClient.delete.mockResolvedValueOnce({ data: { success: true } })
+    wodApiClient.post.mockResolvedValueOnce({ data: { result: { id: 5 } } })
+    wodApiClient.get.mockResolvedValueOnce({ data: { results: [{ id: 6 }] } })
+
+    await expect(benchmarkService.getAllBenchmarks()).resolves.toEqual([{ id: 1 }])
+    await expect(benchmarkService.getBenchmarkById(2)).resolves.toEqual({ id: 2 })
+    await expect(
+      benchmarkService.createBenchmark({ title: 'Fran', description: 'Desc', type: 'FOR_TIME' }),
+    ).resolves.toEqual({ id: 3 })
+    await expect(
+      benchmarkService.updateBenchmark(4, { name: 'Murph', description: 'Hero', type: 'AMRAP' }),
+    ).resolves.toEqual({ id: 4 })
+    await expect(benchmarkService.deleteBenchmark(5)).resolves.toEqual({ success: true })
+    await expect(benchmarkService.createResult(8, { score: '03:55' })).resolves.toEqual({ id: 5 })
+    await expect(benchmarkService.getMyResults(8)).resolves.toEqual([{ id: 6 }])
+
+    expect(wodApiClient.post).toHaveBeenCalledWith('/benchmarks', {
+      name: 'Fran',
+      description: 'Desc',
+      type: 'FOR_TIME',
+    })
+    expect(wodApiClient.post).toHaveBeenCalledWith('/benchmarks/8/results', {
+      result: '03:55',
+    })
+  })
 })
