@@ -19,16 +19,35 @@
       </div>
 
       <template v-if="mode === 'FOR_TIME' || mode === 'AMRAP'">
-        <div class="field-group">
-          <label for="timer-duration">Tiempo (mm:ss)</label>
-          <input
-            id="timer-duration"
-            v-model="timeInput"
-            class="time-input"
-            type="text"
-            inputmode="numeric"
-            placeholder="12:00"
-          />
+        <div class="timer-duration-control">
+          <span class="timer-duration-label">Tiempo</span>
+          <div class="timer-duration-grid">
+            <div class="field-group">
+              <label for="timer-duration-minutes">Minutos</label>
+              <input
+                id="timer-duration-minutes"
+                v-model.number="durationMinutes"
+                class="time-input"
+                type="number"
+                min="0"
+                max="999"
+                inputmode="numeric"
+              />
+            </div>
+            <div class="field-group">
+              <label for="timer-duration-seconds">Segundos</label>
+              <input
+                id="timer-duration-seconds"
+                v-model.number="durationSeconds"
+                class="time-input"
+                type="number"
+                min="0"
+                max="59"
+                @input="limitSecondsInput($event, 'duration')"
+                inputmode="numeric"
+              />
+            </div>
+          </div>
         </div>
       </template>
 
@@ -39,28 +58,66 @@
             <input id="emom-intervals" v-model.number="emomIntervals" type="number" min="1" />
           </div>
 
-          <div class="field-group">
-            <label for="emom-interval-duration">Tiempo por intervalo (mm:ss)</label>
-            <input
-              id="emom-interval-duration"
-              v-model="emomIntervalInput"
-              class="time-input"
-              type="text"
-              inputmode="numeric"
-              placeholder="01:00"
-            />
+          <div class="timer-duration-control">
+            <span class="timer-duration-label">Tiempo por intervalo</span>
+            <div class="timer-duration-grid">
+              <div class="field-group">
+                <label for="emom-interval-minutes">Minutos</label>
+                <input
+                  id="emom-interval-minutes"
+                  v-model.number="emomIntervalMinutes"
+                  class="time-input"
+                  type="number"
+                  min="0"
+                  max="999"
+                  inputmode="numeric"
+                />
+              </div>
+              <div class="field-group">
+                <label for="emom-interval-seconds">Segundos</label>
+                <input
+                  id="emom-interval-seconds"
+                  v-model.number="emomIntervalSeconds"
+                  class="time-input"
+                  type="number"
+                  min="0"
+                  max="59"
+                  @input="limitSecondsInput($event, 'emomInterval')"
+                  inputmode="numeric"
+                />
+              </div>
+            </div>
           </div>
 
-          <div class="field-group">
-            <label for="emom-rest-duration">Descanso entre intervalos (mm:ss)</label>
-            <input
-              id="emom-rest-duration"
-              v-model="emomRestInput"
-              class="time-input"
-              type="text"
-              inputmode="numeric"
-              placeholder="00:15"
-            />
+          <div class="timer-duration-control">
+            <span class="timer-duration-label">Descanso entre intervalos</span>
+            <div class="timer-duration-grid">
+              <div class="field-group">
+                <label for="emom-rest-minutes">Minutos</label>
+                <input
+                  id="emom-rest-minutes"
+                  v-model.number="emomRestMinutes"
+                  class="time-input"
+                  type="number"
+                  min="0"
+                  max="999"
+                  inputmode="numeric"
+                />
+              </div>
+              <div class="field-group">
+                <label for="emom-rest-seconds">Segundos</label>
+                <input
+                  id="emom-rest-seconds"
+                  v-model.number="emomRestSeconds"
+                  class="time-input"
+                  type="number"
+                  min="0"
+                  max="59"
+                  @input="limitSecondsInput($event, 'emomRest')"
+                  inputmode="numeric"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </template>
@@ -93,6 +150,22 @@
         Reiniciar
       </button>
     </div>
+
+    <div
+      v-if="isFinished"
+      class="timer-finished"
+      role="alert"
+      aria-live="assertive"
+    >
+      <div class="timer-finished-panel">
+        <p class="eyebrow">Timer</p>
+        <h2>Tiempo terminado</h2>
+        <p>{{ finishedMessage }}</p>
+        <button class="primary-button" type="button" @click="resetTimer">
+          Aceptar
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -106,21 +179,27 @@ const modeOptions = [
 ]
 
 const mode = ref('FOR_TIME')
-const timeInput = ref('10:00')
+const durationMinutes = ref(10)
+const durationSeconds = ref(0)
 const emomIntervals = ref(10)
-const emomIntervalInput = ref('01:00')
-const emomRestInput = ref('00:00')
+const emomIntervalMinutes = ref(1)
+const emomIntervalSeconds = ref(0)
+const emomRestMinutes = ref(0)
+const emomRestSeconds = ref(0)
 
 const remainingSeconds = ref(0)
 const completedIntervals = ref(0)
 const isRunning = ref(false)
 const hasStarted = ref(false)
+const isFinished = ref(false)
 const emomPhase = ref('work')
 let intervalId = null
 
-const configuredTimeInSeconds = computed(() => parseTimeInput(timeInput.value))
-const configuredEmomIntervalSeconds = computed(() => parseTimeInput(emomIntervalInput.value))
-const configuredEmomRestSeconds = computed(() => parseTimeInput(emomRestInput.value))
+const configuredTimeInSeconds = computed(() => timePartsToSeconds(durationMinutes.value, durationSeconds.value))
+const configuredEmomIntervalSeconds = computed(() =>
+  timePartsToSeconds(emomIntervalMinutes.value, emomIntervalSeconds.value),
+)
+const configuredEmomRestSeconds = computed(() => timePartsToSeconds(emomRestMinutes.value, emomRestSeconds.value))
 
 const formattedPrimaryTime = computed(() => formatSeconds(remainingSeconds.value))
 const modeLabel = computed(() => modeOptions.find((item) => item.value === mode.value)?.label || 'Timer')
@@ -147,6 +226,11 @@ const currentIntervalDisplay = computed(() =>
   Math.min(completedIntervals.value + 1, Math.max(emomIntervals.value, 1)),
 )
 const emomPhaseLabel = computed(() => (emomPhase.value === 'rest' ? 'Descanso' : 'Trabajo'))
+const finishedMessage = computed(() =>
+  mode.value === 'EMOM'
+    ? 'Has completado todos los intervalos.'
+    : 'El tiempo del entrenamiento ha terminado.',
+)
 
 function toggleTimer() {
   if (isRunning.value) {
@@ -155,6 +239,7 @@ function toggleTimer() {
   }
 
   if (!hasStarted.value) {
+    isFinished.value = false
     initializeTimer()
   }
 
@@ -181,6 +266,7 @@ function stopTimer() {
 function resetTimer() {
   stopTimer()
   hasStarted.value = false
+  isFinished.value = false
   initializeTimer()
 }
 
@@ -198,7 +284,7 @@ function initializeTimer() {
 
 function tick() {
   if (remainingSeconds.value <= 0) {
-    resetTimer()
+    finishTimer()
     return
   }
 
@@ -212,7 +298,7 @@ function tick() {
   }
 
   if (remainingSeconds.value <= 0) {
-    stopTimer()
+    finishTimer()
   }
 }
 
@@ -221,8 +307,8 @@ function handleEmomPhaseTransition() {
     completedIntervals.value += 1
 
     if (completedIntervals.value >= emomIntervals.value) {
-      stopTimer()
       remainingSeconds.value = 0
+      finishTimer()
       return
     }
 
@@ -246,29 +332,93 @@ onBeforeUnmount(() => {
 })
 
 watch(
-  [mode, timeInput, emomIntervals, emomIntervalInput, emomRestInput],
+  [
+    mode,
+    durationMinutes,
+    durationSeconds,
+    emomIntervals,
+    emomIntervalMinutes,
+    emomIntervalSeconds,
+    emomRestMinutes,
+    emomRestSeconds,
+  ],
   () => {
     resetTimer()
   },
   { immediate: true },
 )
 
-function parseTimeInput(value) {
-  const normalized = String(value || '').trim()
-
-  if (!/^\d{1,3}:\d{2}$/.test(normalized)) {
-    return 0
+function finishTimer() {
+  if (isFinished.value) {
+    return
   }
 
-  const [minutesPart, secondsPart] = normalized.split(':')
-  const minutes = Number(minutesPart)
-  const seconds = Number(secondsPart)
+  stopTimer()
+  hasStarted.value = false
+  isFinished.value = true
+  playFinishSound()
+}
 
-  if (Number.isNaN(minutes) || Number.isNaN(seconds) || seconds > 59) {
-    return 0
+function playFinishSound() {
+  const AudioContextConstructor = window.AudioContext || window.webkitAudioContext
+
+  if (!AudioContextConstructor) {
+    return
   }
 
+  try {
+    const audioContext = new AudioContextConstructor()
+    const oscillator = audioContext.createOscillator()
+    const gain = audioContext.createGain()
+    const now = audioContext.currentTime
+
+    oscillator.type = 'sine'
+    oscillator.frequency.setValueAtTime(880, now)
+    gain.gain.setValueAtTime(0.001, now)
+    gain.gain.exponentialRampToValueAtTime(0.28, now + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55)
+
+    oscillator.connect(gain)
+    gain.connect(audioContext.destination)
+    oscillator.start(now)
+    oscillator.stop(now + 0.6)
+  } catch {
+    // Some browsers block audio even after interaction; the visual alert still works.
+  }
+}
+
+function timePartsToSeconds(minutesValue, secondsValue) {
+  const minutes = normalizeNumber(minutesValue, 0, 999)
+  const seconds = normalizeNumber(secondsValue, 0, 59)
   return minutes * 60 + seconds
+}
+
+function normalizeNumber(value, min, max) {
+  const numberValue = Number(value)
+
+  if (!Number.isFinite(numberValue)) {
+    return min
+  }
+
+  return Math.min(Math.max(Math.trunc(numberValue), min), max)
+}
+
+function limitSecondsInput(event, field) {
+  const digits = String(event.target.value || '').replace(/\D/g, '').slice(0, 2)
+  const seconds = digits === '' ? 0 : Number(digits)
+  event.target.value = digits
+
+  if (field === 'duration') {
+    durationSeconds.value = seconds
+    return
+  }
+
+  if (field === 'emomInterval') {
+    emomIntervalSeconds.value = seconds
+    return
+  }
+
+  emomRestSeconds.value = seconds
 }
 
 function formatSeconds(totalSeconds) {
