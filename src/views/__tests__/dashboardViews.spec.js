@@ -59,6 +59,21 @@ const benchmarkStoreMock = {
   loadMyResults: vi.fn(),
 }
 
+const prStoreMock = {
+  exercises: [],
+  currentExercise: '',
+  currentPr: null,
+  history: [],
+  isLoadingExercises: false,
+  isLoadingCurrentPr: false,
+  isLoadingHistory: false,
+  isSubmittingPr: false,
+  loadExercises: vi.fn(),
+  loadCurrentPr: vi.fn(),
+  loadHistory: vi.fn(),
+  createPr: vi.fn(),
+}
+
 const getUserByIdMock = vi.fn()
 
 vi.mock('@/stores/wodStore', () => ({
@@ -75,6 +90,10 @@ vi.mock('@/stores/authStore', () => ({
 
 vi.mock('@/stores/benchmarkStore', () => ({
   useBenchmarkStore: () => benchmarkStoreMock,
+}))
+
+vi.mock('@/stores/prStore', () => ({
+  usePrStore: () => prStoreMock,
 }))
 
 vi.mock('@/services/userService', () => ({
@@ -126,6 +145,16 @@ const BenchmarkResultFormStub = defineComponent({
   template: '<button class="benchmark-result-submit" @click="$emit(\'submit\', { result: \'03:50\' })">save result</button>',
 })
 
+const PersonalRecordFormStub = defineComponent({
+  emits: ['submit'],
+  template: '<button class="pr-submit" @click="$emit(\'submit\', { weight: \'150\' })">save pr</button>',
+})
+
+const PRProgressChartStub = defineComponent({
+  props: ['history'],
+  template: '<div class="pr-chart-stub">{{ history.length }}</div>',
+})
+
 describe('dashboard views', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -137,6 +166,10 @@ describe('dashboard views', () => {
     benchmarkStoreMock.benchmarks = []
     benchmarkStoreMock.currentBenchmark = null
     benchmarkStoreMock.myResults = []
+    prStoreMock.exercises = []
+    prStoreMock.currentExercise = ''
+    prStoreMock.currentPr = null
+    prStoreMock.history = []
     getUserByIdMock.mockResolvedValue({ name: 'Dani' })
   })
 
@@ -314,5 +347,60 @@ describe('dashboard views', () => {
     await wrapper.find('.danger-button').trigger('click')
     expect(benchmarkStoreMock.removeBenchmark).toHaveBeenCalledWith('1')
     expect(pushMock).toHaveBeenCalledWith({ name: 'benchmarks' })
+  })
+
+  it('prs view lists predefined exercises', async () => {
+    prStoreMock.exercises = ['BACK_SQUAT', 'SNATCH']
+
+    const PRsView = (await import('@/views/PRsView.vue')).default
+    const wrapper = mount(PRsView, {
+      global: {
+        stubs: {
+          RouterLink: {
+            props: ['to'],
+            template: '<a><slot /></a>',
+          },
+        },
+      },
+    })
+
+    expect(prStoreMock.loadExercises).toHaveBeenCalled()
+    expect(wrapper.text()).toContain('Back Squat')
+    expect(wrapper.text()).toContain('Snatch')
+  })
+
+  it('pr detail view loads data, saves a new pr and renders the chart section', async () => {
+    const routeMock = { params: { exercise: 'BACK_SQUAT' } }
+    vi.doMock('vue-router', async () => {
+      const actual = await vi.importActual('vue-router')
+      return {
+        ...actual,
+        useRoute: () => routeMock,
+      }
+    })
+
+    prStoreMock.currentPr = { id: 1, weight: 145 }
+    prStoreMock.history = [
+      { id: 1, weight: 140, createdAt: '2026-04-18T10:00:00' },
+      { id: 2, weight: 145, createdAt: '2026-04-20T10:00:00' },
+    ]
+
+    const PRDetailView = (await import('@/views/PRDetailView.vue?test=' + Date.now())).default
+    const wrapper = mount(PRDetailView, {
+      global: {
+        stubs: {
+          PersonalRecordForm: PersonalRecordFormStub,
+          PRProgressChart: PRProgressChartStub,
+        },
+      },
+    })
+
+    expect(prStoreMock.loadCurrentPr).toHaveBeenCalledWith('BACK_SQUAT')
+    expect(prStoreMock.loadHistory).toHaveBeenCalledWith('BACK_SQUAT')
+    expect(wrapper.text()).toContain('145 kg')
+    expect(wrapper.find('.pr-chart-stub').text()).toBe('2')
+
+    await wrapper.find('.pr-submit').trigger('click')
+    expect(prStoreMock.createPr).toHaveBeenCalledWith('BACK_SQUAT', { weight: '150' })
   })
 })

@@ -1,5 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import PersonalRecordForm from '@/components/PersonalRecordForm.vue'
+import PRProgressChart from '@/components/PRProgressChart.vue'
 import ProfileForm from '@/components/ProfileForm.vue'
 import ProposalForm from '@/components/ProposalForm.vue'
 import ProposalReviewCard from '@/components/ProposalReviewCard.vue'
@@ -100,5 +102,32 @@ describe('additional form and card components', () => {
       type: 'AMRAP',
       approved: true,
     })
+  })
+
+  it('emits personal record payloads and renders the progress chart', async () => {
+    const form = mount(PersonalRecordForm)
+
+    await form.find('#pr-weight').setValue('120.5')
+    await form.find('form').trigger('submit.prevent')
+
+    expect(form.emitted('submit')[0][0]).toEqual({
+      weight: 120.5,
+    })
+
+    const chart = mount(PRProgressChart, {
+      props: {
+        history: [
+          { id: 1, weight: 100, createdAt: '2026-04-18T10:00:00' },
+          { id: 2, weight: 110, createdAt: '2026-04-20T10:00:00' },
+        ],
+      },
+    })
+
+    expect(chart.find('polyline').exists()).toBe(true)
+    expect(chart.text()).toContain('100 kg')
+    expect(chart.text()).toContain('110 kg')
+    expect(chart.text()).toContain('Mejor marca:')
+    expect(chart.text()).toContain('18/4')
+    expect(chart.text()).toContain('20/4')
   })
 })

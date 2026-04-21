@@ -68,4 +68,25 @@ describe('MainLayout', () => {
 
     expect(wrapper.text()).toContain('Detalle del benchmark')
   })
+
+  it('renders the personal records detail title', async () => {
+    routeMock.name = 'pr-detail'
+    routeMock.fullPath = '/prs/BACK_SQUAT'
+
+    const wrapper = mount(MainLayout, {
+      global: {
+        stubs: {
+          SidebarMenu: {
+            template: '<div class="sidebar-stub">{{ isMobileOpen }}</div>',
+            props: ['isMobileOpen'],
+          },
+          RouterView: {
+            template: '<div class="router-view-stub" />',
+          },
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('Detalle de marca personal')
+  })
 })

@@ -126,4 +126,21 @@ describe('service wrappers', () => {
       result: '03:55',
     })
   })
+
+  it('maps personal record service payloads and unwraps collections', async () => {
+    const prService = (await import('@/services/prService')).default
+    wodApiClient.get.mockResolvedValueOnce({ data: { exercises: ['BACK_SQUAT', 'SNATCH'] } })
+    wodApiClient.get.mockResolvedValueOnce({ data: { item: { id: 2 } } })
+    wodApiClient.post.mockResolvedValueOnce({ data: { data: { id: 3 } } })
+    wodApiClient.get.mockResolvedValueOnce({ data: { history: [{ id: 4 }] } })
+
+    await expect(prService.getExercises()).resolves.toEqual(['BACK_SQUAT', 'SNATCH'])
+    await expect(prService.getCurrentPr('BACK_SQUAT')).resolves.toEqual({ id: 2 })
+    await expect(prService.createPr('BACK_SQUAT', { weight: '145,5' })).resolves.toEqual({ id: 3 })
+    await expect(prService.getHistory('BACK_SQUAT')).resolves.toEqual([{ id: 4 }])
+
+    expect(wodApiClient.post).toHaveBeenCalledWith('/prs/BACK_SQUAT', {
+      weight: 145.5,
+    })
+  })
 })

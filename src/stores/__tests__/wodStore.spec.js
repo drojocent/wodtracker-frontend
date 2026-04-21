@@ -142,3 +142,50 @@ describe('benchmarkStore', () => {
     await expect(store.removeBenchmark(2)).resolves.toEqual({ ok: true })
   })
 })
+
+const getExercisesMock = vi.fn()
+const getCurrentPrMock = vi.fn()
+const createPrMock = vi.fn()
+const getPrHistoryMock = vi.fn()
+
+vi.mock('@/services/prService', () => ({
+  default: {
+    getExercises: getExercisesMock,
+    getCurrentPr: getCurrentPrMock,
+    createPr: createPrMock,
+    getHistory: getPrHistoryMock,
+  },
+}))
+
+describe('prStore', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.clearAllMocks()
+  })
+
+  it('loads exercises and detail data', async () => {
+    const { usePrStore } = await import('@/stores/prStore')
+    const store = usePrStore()
+
+    getExercisesMock.mockResolvedValue(['BACK_SQUAT'])
+    getCurrentPrMock.mockResolvedValue({ id: 1, weight: 140 })
+    getPrHistoryMock.mockResolvedValue([{ id: 2, weight: 130 }])
+
+    await expect(store.loadExercises()).resolves.toEqual(['BACK_SQUAT'])
+    await expect(store.loadCurrentPr('BACK_SQUAT')).resolves.toEqual({ id: 1, weight: 140 })
+    await expect(store.loadHistory('BACK_SQUAT')).resolves.toEqual([{ id: 2, weight: 130 }])
+  })
+
+  it('creates a personal record and refreshes detail data', async () => {
+    const { usePrStore } = await import('@/stores/prStore')
+    const store = usePrStore()
+
+    createPrMock.mockResolvedValue({ id: 3, weight: 145 })
+    getCurrentPrMock.mockResolvedValue({ id: 3, weight: 145 })
+    getPrHistoryMock.mockResolvedValue([{ id: 3, weight: 145 }])
+
+    await expect(store.createPr('BACK_SQUAT', { weight: '145' })).resolves.toEqual({ id: 3, weight: 145 })
+    expect(getCurrentPrMock).toHaveBeenCalledWith('BACK_SQUAT')
+    expect(getPrHistoryMock).toHaveBeenCalledWith('BACK_SQUAT')
+  })
+})

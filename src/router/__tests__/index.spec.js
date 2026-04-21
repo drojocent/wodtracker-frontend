@@ -87,6 +87,18 @@ describe('router guards', () => {
     expect(router.currentRoute.value.params.id).toBe('12')
   })
 
+  it('redirects admins away from personal records routes', async () => {
+    const { router } = await loadRouterWithAuth({
+      isAuthenticated: true,
+      role: 'ADMIN',
+    })
+
+    await router.push('/prs/BACK_SQUAT')
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('home')
+  })
+
   it('redirects unknown routes to home', async () => {
     const { router } = await loadRouterWithAuth({
       isAuthenticated: true,

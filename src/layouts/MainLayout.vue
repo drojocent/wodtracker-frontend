@@ -54,6 +54,8 @@ const titles = {
   timer: 'Cronómetro',
   benchmarks: 'Benchmarks',
   'benchmark-detail': 'Detalle del benchmark',
+  prs: 'Marcas Personales',
+  'pr-detail': 'Detalle de marca personal',
   'admin-wods': 'Administrar WODs',
   'admin-proposals': 'Propuestas pendientes',
 }
