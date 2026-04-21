@@ -9,6 +9,8 @@ import ProposalView from '@/views/ProposalView.vue'
 import TimerView from '@/views/TimerView.vue'
 import BenchmarksView from '@/views/BenchmarksView.vue'
 import BenchmarkDetailView from '@/views/BenchmarkDetailView.vue'
+import PRsView from '@/views/PRsView.vue'
+import PRDetailView from '@/views/PRDetailView.vue'
 import AdminWodsView from '@/views/AdminWodsView.vue'
 import AdminProposalsView from '@/views/AdminProposalsView.vue'
 
@@ -65,6 +67,18 @@ const routes = [
         name: 'benchmark-detail',
         component: BenchmarkDetailView,
         meta: { requiresAuth: true, roles: ['USER', 'ADMIN'] },
+      },
+      {
+        path: 'prs',
+        name: 'prs',
+        component: PRsView,
+        meta: { requiresAuth: true, roles: ['USER'] },
+      },
+      {
+        path: 'prs/:exercise',
+        name: 'pr-detail',
+        component: PRDetailView,
+        meta: { requiresAuth: true, roles: ['USER'] },
       },
       {
         path: 'admin/wods',

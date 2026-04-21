@@ -56,11 +56,12 @@ const authStore = useAuthStore()
 const navItems = [
   { to: '/', label: 'Inicio', roles: ['USER', 'ADMIN'] },
   { to: '/profile', label: 'Perfil', roles: ['USER', 'ADMIN'] },
+  { to: '/prs', label: 'Marcas Personales', roles: ['USER'] },
   { to: '/proposal', label: 'Proponer WOD', roles: ['USER'] },
-  { to: '/timer', label: 'Cronómetro', roles: ['USER', 'ADMIN'] },
   { to: '/benchmarks', label: 'Benchmarks', roles: ['USER', 'ADMIN'] },
   { to: '/admin/wods', label: 'Gestionar WODs', roles: ['ADMIN'] },
   { to: '/admin/proposals', label: 'Propuestas', roles: ['ADMIN'] },
+  { to: '/timer', label: 'Cronómetro', roles: ['USER', 'ADMIN'] },
 ]
 
 const visibleItems = computed(() =>
