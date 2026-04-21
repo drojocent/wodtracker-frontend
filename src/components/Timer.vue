@@ -43,7 +43,7 @@
                 type="number"
                 min="0"
                 max="59"
-                @input="limitSecondsInput($event, durationSeconds)"
+                @input="limitSecondsInput($event, 'duration')"
                 inputmode="numeric"
               />
             </div>
@@ -82,7 +82,7 @@
                   type="number"
                   min="0"
                   max="59"
-                  @input="limitSecondsInput($event, emomIntervalSeconds)"
+                  @input="limitSecondsInput($event, 'emomInterval')"
                   inputmode="numeric"
                 />
               </div>
@@ -113,7 +113,7 @@
                   type="number"
                   min="0"
                   max="59"
-                  @input="limitSecondsInput($event, emomRestSeconds)"
+                  @input="limitSecondsInput($event, 'emomRest')"
                   inputmode="numeric"
                 />
               </div>
@@ -403,10 +403,22 @@ function normalizeNumber(value, min, max) {
   return Math.min(Math.max(Math.trunc(numberValue), min), max)
 }
 
-function limitSecondsInput(event, secondsTarget) {
+function limitSecondsInput(event, field) {
   const digits = String(event.target.value || '').replace(/\D/g, '').slice(0, 2)
+  const seconds = digits === '' ? 0 : Number(digits)
   event.target.value = digits
-  secondsTarget.value = digits === '' ? 0 : Number(digits)
+
+  if (field === 'duration') {
+    durationSeconds.value = seconds
+    return
+  }
+
+  if (field === 'emomInterval') {
+    emomIntervalSeconds.value = seconds
+    return
+  }
+
+  emomRestSeconds.value = seconds
 }
 
 function formatSeconds(totalSeconds) {
