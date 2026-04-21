@@ -30,20 +30,6 @@
             <strong>{{ results.length }}</strong>
           </div>
         </div>
-
-        <div v-if="isAdmin" class="inline-actions benchmark-admin-actions">
-          <button class="secondary-button align-start" type="button" @click="startEditing">
-            Editar benchmark
-          </button>
-          <button
-            class="secondary-button align-start danger-button"
-            type="button"
-            :disabled="benchmarkStore.isDeletingBenchmark"
-            @click="handleDeleteBenchmark"
-          >
-            Eliminar benchmark
-          </button>
-        </div>
       </section>
 
       <div v-else class="panel-card empty-state">
@@ -53,14 +39,6 @@
     </section>
 
     <aside class="content-column side-column">
-      <BenchmarkForm
-        v-if="isAdmin && isEditing"
-        :initial-value="benchmark"
-        :loading="benchmarkStore.isSavingBenchmark"
-        @cancel="cancelEditing"
-        @submit="handleSaveBenchmark"
-      />
-
       <BenchmarkResultForm
         :benchmark-id="benchmarkId"
         :loading="benchmarkStore.isSubmittingResult"
@@ -90,25 +68,19 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import BenchmarkForm from '@/components/BenchmarkForm.vue'
+import { useRoute } from 'vue-router'
 import BenchmarkResultForm from '@/components/BenchmarkResultForm.vue'
-import { useAuthStore } from '@/stores/authStore'
 import { useBenchmarkStore } from '@/stores/benchmarkStore'
 
 const route = useRoute()
-const router = useRouter()
-const authStore = useAuthStore()
 const benchmarkStore = useBenchmarkStore()
 
 const errorMessage = ref('')
 const successMessage = ref('')
-const isEditing = ref(false)
 
 const benchmarkId = computed(() => route.params.id || '')
 const benchmark = computed(() => benchmarkStore.currentBenchmark)
 const results = computed(() => benchmarkStore.myResults)
-const isAdmin = computed(() => authStore.role === 'ADMIN')
 
 onMounted(async () => {
   await loadBenchmarkDetail()
@@ -150,40 +122,6 @@ async function handleSubmitResult(payload) {
   }
 }
 
-async function handleSaveBenchmark(payload) {
-  errorMessage.value = ''
-  successMessage.value = ''
-
-  try {
-    const savedBenchmark = await benchmarkStore.saveBenchmark(payload, benchmarkId.value)
-    benchmarkStore.setCurrentBenchmark(savedBenchmark)
-    isEditing.value = false
-    successMessage.value = 'Benchmark actualizado correctamente.'
-  } catch (error) {
-    errorMessage.value = error.message
-  }
-}
-
-async function handleDeleteBenchmark() {
-  errorMessage.value = ''
-  successMessage.value = ''
-
-  try {
-    await benchmarkStore.removeBenchmark(benchmarkId.value)
-    router.push({ name: 'benchmarks' })
-  } catch (error) {
-    errorMessage.value = error.message
-  }
-}
-
-function startEditing() {
-  isEditing.value = true
-}
-
-function cancelEditing() {
-  isEditing.value = false
-}
-
 function formatDateTime(value) {
   if (!value) {
     return 'Sin fecha'
@@ -201,10 +139,6 @@ function formatDateTime(value) {
 
 <style scoped>
 .benchmark-stats-grid {
-  margin-top: 1.5rem;
-}
-
-.benchmark-admin-actions {
   margin-top: 1.5rem;
 }
 </style>

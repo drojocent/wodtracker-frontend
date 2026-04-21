@@ -94,6 +94,8 @@ describe('additional form and card components', () => {
       },
     })
 
+    expect(form.text()).toContain('Fecha en la que se hará el WOD')
+
     await form.find('#wod-title').setValue('Murph 2')
     await form.find('form').trigger('submit.prevent')
 
