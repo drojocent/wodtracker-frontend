@@ -221,6 +221,18 @@ describe('dashboard views', () => {
       { id: 2, name: 'Murph', type: 'AMRAP', date: '2026-04-22' },
       { id: 1, name: 'Fran', type: 'FOR_TIME', date: '2026-04-20' },
     ]
+    const scrollIntoViewMock = vi.fn()
+    const scrollToMock = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoViewMock
+    Object.defineProperty(window, 'scrollY', {
+      configurable: true,
+      value: 360,
+    })
+    Object.defineProperty(window, 'scrollTo', {
+      configurable: true,
+      value: scrollToMock,
+    })
+
     const AdminWodsView = (await import('@/views/AdminWodsView.vue')).default
     const wrapper = mount(AdminWodsView, {
       global: {
@@ -232,11 +244,57 @@ describe('dashboard views', () => {
 
     expect(wrapper.text().indexOf('Fran')).toBeLessThan(wrapper.text().indexOf('Murph'))
 
-    await wrapper.find('.wod-submit').trigger('click')
-    expect(wodStoreMock.saveWod).toHaveBeenCalled()
+    await wrapper.find('.wod-create-shortcut').trigger('click')
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'start',
+    })
+    scrollIntoViewMock.mockClear()
 
-    await wrapper.findAll('button')[1].trigger('click')
+    await wrapper.findAll('button').find((button) => button.text() === 'Editar').trigger('click')
+    await nextTick()
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'start',
+    })
+
+    await wrapper.find('.wod-submit').trigger('click')
+    expect(wodStoreMock.saveWod).toHaveBeenCalledWith(
+      { name: 'Murph', type: 'FOR_TIME', date: '2026-04-20', description: 'Hero' },
+      1,
+    )
+    await nextTick()
+    expect(scrollToMock).toHaveBeenCalledWith({
+      top: 360,
+      behavior: 'smooth',
+    })
+    const formSuccess = wrapper.find('aside .status-message.success')
+    expect(formSuccess.exists()).toBe(true)
+    expect(formSuccess.text()).toBe('WOD actualizado correctamente.')
+
+    await wrapper.find('.danger-button').trigger('click')
     expect(wodStoreMock.removeWod).toHaveBeenCalled()
+  })
+
+  it('admin wods view shows save errors next to the form', async () => {
+    wodStoreMock.allWods = [{ id: 1, name: 'Fran', type: 'FOR_TIME', date: '2026-04-20' }]
+    wodStoreMock.saveWod.mockRejectedValueOnce(new Error('Ya existe un WOD para esa fecha.'))
+
+    const AdminWodsView = (await import('@/views/AdminWodsView.vue?errorTest=' + Date.now())).default
+    const wrapper = mount(AdminWodsView, {
+      global: {
+        stubs: {
+          WodForm: WodFormStub,
+        },
+      },
+    })
+
+    await wrapper.find('.wod-submit').trigger('click')
+    await nextTick()
+
+    const formError = wrapper.find('aside .status-message.error')
+    expect(formError.exists()).toBe(true)
+    expect(formError.text()).toBe('Ya existe un WOD para esa fecha.')
   })
 
   it('admin proposals view resolves author names and moderates proposals', async () => {
@@ -277,6 +335,17 @@ describe('dashboard views', () => {
       { id: 2, name: 'Murph', type: 'FOR_TIME', createdAt: '2026-04-19T10:00:00' },
       { id: 1, name: 'Fran', type: 'FOR_TIME', createdAt: '2026-04-20T10:00:00' },
     ]
+    const scrollIntoViewMock = vi.fn()
+    const scrollToMock = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoViewMock
+    Object.defineProperty(window, 'scrollY', {
+      configurable: true,
+      value: 420,
+    })
+    Object.defineProperty(window, 'scrollTo', {
+      configurable: true,
+      value: scrollToMock,
+    })
 
     const BenchmarksView = (await import('@/views/BenchmarksView.vue')).default
     const wrapper = mount(BenchmarksView, {
@@ -294,14 +363,36 @@ describe('dashboard views', () => {
     expect(benchmarkStoreMock.loadBenchmarks).toHaveBeenCalled()
     expect(wrapper.text().indexOf('Fran')).toBeLessThan(wrapper.text().indexOf('Murph'))
 
+    await wrapper.find('.benchmark-create-shortcut').trigger('click')
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'start',
+    })
+    scrollIntoViewMock.mockClear()
+
+    await wrapper.findAll('button').find((button) => button.text() === 'Editar').trigger('click')
+    await nextTick()
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'start',
+    })
+
     await wrapper.find('.benchmark-save').trigger('click')
-    expect(benchmarkStoreMock.saveBenchmark).toHaveBeenCalled()
+    expect(benchmarkStoreMock.saveBenchmark).toHaveBeenCalledWith(
+      { name: 'Fran', description: 'Workout', type: 'FOR_TIME' },
+      1,
+    )
+    await nextTick()
+    expect(scrollToMock).toHaveBeenCalledWith({
+      top: 420,
+      behavior: 'smooth',
+    })
 
     await wrapper.find('.danger-button').trigger('click')
     expect(benchmarkStoreMock.removeBenchmark).toHaveBeenCalledWith(1)
   })
 
-  it('benchmark detail view saves result and lets admin edit/delete', async () => {
+  it('benchmark detail view saves result without benchmark edit/delete actions', async () => {
     benchmarkStoreMock.currentBenchmark = {
       id: 1,
       name: 'Fran',
@@ -311,13 +402,11 @@ describe('dashboard views', () => {
     }
     benchmarkStoreMock.myResults = [{ id: 4, result: '03:55', createdAt: '2026-04-20T12:00:00' }]
 
-    const pushMock = vi.fn()
     vi.doMock('vue-router', async () => {
       const actual = await vi.importActual('vue-router')
       return {
         ...actual,
         useRoute: () => ({ params: { id: '1' } }),
-        useRouter: () => ({ push: pushMock }),
       }
     })
 
@@ -337,16 +426,11 @@ describe('dashboard views', () => {
     await wrapper.find('.benchmark-result-submit').trigger('click')
     expect(benchmarkStoreMock.createResult).toHaveBeenCalledWith('1', { result: '03:50' })
 
-    await wrapper.find('.secondary-button').trigger('click')
-    await wrapper.find('.benchmark-save').trigger('click')
-    expect(benchmarkStoreMock.saveBenchmark).toHaveBeenCalledWith(
-      { name: 'Fran', description: 'Workout', type: 'FOR_TIME' },
-      '1',
-    )
-
-    await wrapper.find('.danger-button').trigger('click')
-    expect(benchmarkStoreMock.removeBenchmark).toHaveBeenCalledWith('1')
-    expect(pushMock).toHaveBeenCalledWith({ name: 'benchmarks' })
+    expect(wrapper.text()).not.toContain('Editar benchmark')
+    expect(wrapper.text()).not.toContain('Eliminar benchmark')
+    expect(wrapper.find('.benchmark-save').exists()).toBe(false)
+    expect(benchmarkStoreMock.saveBenchmark).not.toHaveBeenCalled()
+    expect(benchmarkStoreMock.removeBenchmark).not.toHaveBeenCalled()
   })
 
   it('prs view lists predefined exercises', async () => {

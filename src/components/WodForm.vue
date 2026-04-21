@@ -24,7 +24,7 @@
       </div>
 
       <div class="field-group">
-        <label for="wod-date">Fecha</label>
+        <label for="wod-date">Fecha en la que se hará el WOD</label>
         <input id="wod-date" v-model="form.date" type="date" :min="todayDate" required />
       </div>
     </div>

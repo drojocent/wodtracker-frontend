@@ -41,9 +41,21 @@
           </select>
         </div>
 
-        <p class="benchmark-result-count" aria-live="polite">
-          {{ resultCountText }}
-        </p>
+        <div class="benchmark-toolbar-actions">
+          <p class="benchmark-result-count" aria-live="polite">
+            {{ resultCountText }}
+          </p>
+          <button
+            v-if="isAdmin"
+            class="benchmark-create-shortcut"
+            type="button"
+            aria-label="Ir al formulario de crear benchmark"
+            title="Crear benchmark"
+            @click="scrollToBenchmarkForm"
+          >
+            +
+          </button>
+        </div>
       </section>
 
       <section
@@ -114,7 +126,7 @@
       </section>
     </div>
 
-    <aside v-if="isAdmin" class="content-column side-column">
+    <aside v-if="isAdmin" ref="benchmarkFormSection" class="content-column side-column">
       <BenchmarkForm
         :initial-value="editingBenchmark"
         :loading="benchmarkStore.isSavingBenchmark"
@@ -126,7 +138,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import BenchmarkForm from '@/components/BenchmarkForm.vue'
 import { useAuthStore } from '@/stores/authStore'
@@ -136,10 +148,12 @@ const authStore = useAuthStore()
 const benchmarkStore = useBenchmarkStore()
 
 const editingBenchmark = ref(null)
+const benchmarkFormSection = ref(null)
 const errorMessage = ref('')
 const successMessage = ref('')
 const searchTerm = ref('')
 const selectedType = ref('')
+const scrollPositionBeforeEdit = ref(null)
 
 const isAdmin = computed(() => authStore.role === 'ADMIN')
 const benchmarks = computed(() =>
@@ -185,6 +199,7 @@ onMounted(async () => {
 async function handleSaveBenchmark(payload) {
   errorMessage.value = ''
   successMessage.value = ''
+  const wasEditing = Boolean(editingBenchmark.value)
 
   try {
     await benchmarkStore.saveBenchmark(payload, getBenchmarkId(editingBenchmark.value))
@@ -192,6 +207,10 @@ async function handleSaveBenchmark(payload) {
       ? 'Benchmark actualizado correctamente.'
       : 'Benchmark creado correctamente.'
     editingBenchmark.value = null
+
+    if (wasEditing) {
+      await restoreScrollPosition()
+    }
   } catch (error) {
     errorMessage.value = error.message
   }
@@ -213,12 +232,16 @@ async function handleDeleteBenchmark(benchmark) {
   }
 }
 
-function startEditing(benchmark) {
+async function startEditing(benchmark) {
+  scrollPositionBeforeEdit.value = getCurrentScrollY()
   editingBenchmark.value = { ...benchmark }
+  await nextTick()
+  scrollToBenchmarkForm()
 }
 
 function cancelEditing() {
   editingBenchmark.value = null
+  scrollPositionBeforeEdit.value = null
 }
 
 function getBenchmarkId(benchmark) {
@@ -276,6 +299,30 @@ function normalizeText(value) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
+}
+
+function scrollToBenchmarkForm() {
+  benchmarkFormSection.value?.scrollIntoView?.({
+    behavior: 'smooth',
+    block: 'start',
+  })
+}
+
+async function restoreScrollPosition() {
+  await nextTick()
+
+  if (typeof window !== 'undefined' && scrollPositionBeforeEdit.value !== null) {
+    window.scrollTo({
+      top: scrollPositionBeforeEdit.value,
+      behavior: 'smooth',
+    })
+  }
+
+  scrollPositionBeforeEdit.value = null
+}
+
+function getCurrentScrollY() {
+  return typeof window === 'undefined' ? 0 : window.scrollY
 }
 </script>
 
@@ -394,6 +441,39 @@ function normalizeText(value) {
 .benchmark-result-count {
   align-self: center;
   white-space: nowrap;
+}
+
+.benchmark-toolbar-actions {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.benchmark-create-shortcut {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 95, 113, 0.34);
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: #ffffff;
+  display: none;
+  place-items: center;
+  flex: 0 0 auto;
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 10px 24px rgba(214, 40, 57, 0.18);
+}
+
+.benchmark-create-shortcut:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+.benchmark-create-shortcut:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(214, 40, 57, 0.18);
 }
 
 .benchmarks-grid {
@@ -523,6 +603,14 @@ function normalizeText(value) {
 
   .benchmark-result-count {
     white-space: normal;
+  }
+
+  .benchmark-toolbar-actions {
+    justify-content: flex-start;
+  }
+
+  .benchmark-create-shortcut {
+    display: inline-grid;
   }
 }
 </style>
