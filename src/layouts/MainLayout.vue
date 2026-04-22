@@ -49,15 +49,16 @@ const isMenuOpen = ref(false)
 
 const titles = {
   home: 'Resumen diario',
-  profile: 'Mi perfil',
+  profile: 'Mi Perfil',
   proposal: 'Proponer WOD',
   timer: 'Cronómetro',
   benchmarks: 'Benchmarks',
   'benchmark-detail': 'Detalle del benchmark',
   prs: 'Marcas Personales',
   'pr-detail': 'Detalle de marca personal',
-  'admin-wods': 'Administrar WODs',
-  'admin-proposals': 'Propuestas pendientes',
+  'admin-wods': 'Gestionar WODs',
+  'admin-users': 'Gestionar Usuarios',
+  'admin-proposals': 'WODs Propuestos',
 }
 
 const currentTitle = computed(() => titles[route.name] || 'Panel')

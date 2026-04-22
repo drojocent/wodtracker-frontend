@@ -55,7 +55,7 @@ const authStore = useAuthStore()
 
 const navItems = [
   { to: '/', label: 'Inicio', roles: ['USER', 'ADMIN'] },
-  { to: '/profile', label: 'Perfil', roles: ['USER', 'ADMIN'] },
+  { to: '/profile', label: 'Mi Perfil', roles: ['USER', 'ADMIN'] },
   { to: '/prs', label: 'Marcas Personales', roles: ['USER'] },
   { to: '/proposal', label: 'Proponer WOD', roles: ['USER'] },
   { to: '/benchmarks', label: 'Benchmarks', roles: ['USER', 'ADMIN'] },

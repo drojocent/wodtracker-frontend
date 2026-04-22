@@ -5,7 +5,7 @@
         <div class="card-header">
           <div>
             <p class="eyebrow">Usuarios</p>
-            <h2>Gestionar usuarios</h2>
+            <h2>Listado de usuarios</h2>
           </div>
           <button
             class="user-create-shortcut"
