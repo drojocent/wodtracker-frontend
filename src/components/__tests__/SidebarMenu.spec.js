@@ -44,6 +44,7 @@ describe('SidebarMenu', () => {
     })
 
     expect(wrapper.text()).toContain('Gestionar WODs')
+    expect(wrapper.text()).toContain('Gestionar Usuarios')
     expect(wrapper.text()).toContain('Benchmarks')
     expect(wrapper.text()).not.toContain('Marcas Personales')
     expect(wrapper.classes()).toContain('sidebar-mobile-open')

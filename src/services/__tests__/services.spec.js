@@ -4,6 +4,7 @@ const userApiClient = {
   post: vi.fn(),
   get: vi.fn(),
   put: vi.fn(),
+  delete: vi.fn(),
 }
 
 const wodApiClient = {
@@ -34,14 +35,28 @@ describe('service wrappers', () => {
 
   it('maps user service payloads', async () => {
     const userService = (await import('@/services/userService')).default
+    userApiClient.get.mockResolvedValueOnce({ data: [{ id: 0, role: 'ADMIN' }] })
+    userApiClient.post.mockResolvedValueOnce({ data: { id: 4 } })
+    userApiClient.delete.mockResolvedValueOnce({ data: null })
     userApiClient.get.mockResolvedValueOnce({ data: { user: { id: 1 } } })
     userApiClient.get.mockResolvedValueOnce({ data: { profile: { id: 2 } } })
     userApiClient.put.mockResolvedValueOnce({ data: { data: { id: 3 } } })
 
+    await expect(userService.getAdminUsers()).resolves.toEqual([{ id: 0, role: 'ADMIN' }])
+    await expect(userService.createAdminUser({ name: 'Admin', email: 'admin@example.com', password: 'secret', role: 'ADMIN' })).resolves.toEqual({ id: 4 })
+    await expect(userService.deleteAdminUser(4)).resolves.toBeNull()
     await expect(userService.getUserById(7)).resolves.toEqual({ id: 1 })
     await expect(userService.getProfile()).resolves.toEqual({ id: 2 })
     await expect(userService.updateProfile({ name: 'Dani', weight: '78.5', height: '180', password: '1234' })).resolves.toEqual({ id: 3 })
 
+    expect(userApiClient.get).toHaveBeenNthCalledWith(1, '/admin/users')
+    expect(userApiClient.post).toHaveBeenCalledWith('/admin/users', {
+      name: 'Admin',
+      email: 'admin@example.com',
+      password: 'secret',
+      role: 'ADMIN',
+    })
+    expect(userApiClient.delete).toHaveBeenCalledWith('/admin/users/4')
     expect(userApiClient.put).toHaveBeenCalledWith('/users/me', {
       name: 'Dani',
       weight: 78.5,

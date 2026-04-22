@@ -87,6 +87,18 @@ describe('router guards', () => {
     expect(router.currentRoute.value.params.id).toBe('12')
   })
 
+  it('allows admins to access user management', async () => {
+    const { router } = await loadRouterWithAuth({
+      isAuthenticated: true,
+      role: 'ADMIN',
+    })
+
+    await router.push('/admin/users')
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('admin-users')
+  })
+
   it('redirects admins away from personal records routes', async () => {
     const { router } = await loadRouterWithAuth({
       isAuthenticated: true,

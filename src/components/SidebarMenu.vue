@@ -60,6 +60,7 @@ const navItems = [
   { to: '/proposal', label: 'Proponer WOD', roles: ['USER'] },
   { to: '/benchmarks', label: 'Benchmarks', roles: ['USER', 'ADMIN'] },
   { to: '/admin/wods', label: 'Gestionar WODs', roles: ['ADMIN'] },
+  { to: '/admin/users', label: 'Gestionar Usuarios', roles: ['ADMIN'] },
   { to: '/admin/proposals', label: 'Propuestas', roles: ['ADMIN'] },
   { to: '/timer', label: 'Cronómetro', roles: ['USER', 'ADMIN'] },
 ]

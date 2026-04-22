@@ -75,6 +75,9 @@ const prStoreMock = {
 }
 
 const getUserByIdMock = vi.fn()
+const getAdminUsersMock = vi.fn()
+const createAdminUserMock = vi.fn()
+const deleteAdminUserMock = vi.fn()
 
 vi.mock('@/stores/wodStore', () => ({
   useWodStore: () => wodStoreMock,
@@ -99,6 +102,9 @@ vi.mock('@/stores/prStore', () => ({
 vi.mock('@/services/userService', () => ({
   default: {
     getUserById: getUserByIdMock,
+    getAdminUsers: getAdminUsersMock,
+    createAdminUser: createAdminUserMock,
+    deleteAdminUser: deleteAdminUserMock,
   },
 }))
 
@@ -171,6 +177,9 @@ describe('dashboard views', () => {
     prStoreMock.currentPr = null
     prStoreMock.history = []
     getUserByIdMock.mockResolvedValue({ name: 'Dani' })
+    getAdminUsersMock.mockResolvedValue([])
+    createAdminUserMock.mockResolvedValue({ id: 3 })
+    deleteAdminUserMock.mockResolvedValue(null)
   })
 
   it('home view updates the existing result instead of creating a new one', async () => {
@@ -315,6 +324,86 @@ describe('dashboard views', () => {
 
     await wrapper.find('.approve').trigger('click')
     expect(wodStoreMock.moderateProposal).toHaveBeenCalledWith(1, 'approve')
+  })
+
+  it('users admin view lists, creates and confirms before deleting users', async () => {
+    getAdminUsersMock
+      .mockResolvedValueOnce([
+        { id: 2, name: 'Zoe', email: 'zoe@example.com', role: 'USER' },
+        { id: 1, name: 'Ana', email: 'ana@example.com', role: 'ADMIN' },
+      ])
+      .mockResolvedValueOnce([
+        { id: 1, name: 'Ana', email: 'ana@example.com', role: 'ADMIN' },
+        { id: 2, name: 'Zoe', email: 'zoe@example.com', role: 'USER' },
+        { id: 3, name: 'New', email: 'new@example.com', role: 'USER' },
+      ])
+      .mockResolvedValueOnce([
+        { id: 2, name: 'Zoe', email: 'zoe@example.com', role: 'USER' },
+        { id: 3, name: 'New', email: 'new@example.com', role: 'USER' },
+      ])
+    const UsersAdminView = (await import('@/views/UsersAdminView.vue')).default
+    const wrapper = mount(UsersAdminView)
+
+    await flushPromises()
+    await nextTick()
+
+    expect(wrapper.text().indexOf('Ana')).toBeLessThan(wrapper.text().indexOf('Zoe'))
+    expect(wrapper.text()).toContain('ana@example.com · ADMIN')
+
+    await wrapper.find('#user-name-search').setValue('zo')
+    expect(wrapper.findAll('.admin-item')).toHaveLength(1)
+    expect(wrapper.find('.admin-item').text()).toContain('Zoe')
+
+    await wrapper.find('#user-name-search').setValue('')
+    await wrapper.find('#user-role-filter').setValue('ADMIN')
+    expect(wrapper.findAll('.admin-item')).toHaveLength(1)
+    expect(wrapper.find('.admin-item').text()).toContain('Ana')
+
+    await wrapper.find('#user-name-search').setValue('zo')
+    expect(wrapper.findAll('.admin-item')).toHaveLength(0)
+    expect(wrapper.text()).toContain('No hay usuarios que coincidan con los filtros.')
+
+    await wrapper.find('#user-name-search').setValue('')
+    await wrapper.find('#user-role-filter').setValue('USER')
+    expect(wrapper.findAll('.admin-item')).toHaveLength(1)
+    expect(wrapper.find('.admin-item').text()).toContain('Zoe')
+
+    await wrapper.find('#user-role-filter').setValue('')
+    expect(wrapper.findAll('.admin-item')).toHaveLength(2)
+
+    await wrapper.find('#admin-user-name').setValue('New')
+    await wrapper.find('#admin-user-email').setValue('new@example.com')
+    await wrapper.find('#admin-user-password').setValue('secret123')
+    await wrapper.find('#admin-user-role').setValue('USER')
+    await wrapper.find('form').trigger('submit.prevent')
+    await flushPromises()
+
+    expect(createAdminUserMock).toHaveBeenCalledWith({
+      name: 'New',
+      email: 'new@example.com',
+      password: 'secret123',
+      role: 'USER',
+    })
+
+    await wrapper.find('.danger-button').trigger('click')
+    await nextTick()
+
+    expect(wrapper.find('[role="alertdialog"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('¿Seguro que quieres eliminar este usuario definitivamente?')
+    expect(deleteAdminUserMock).not.toHaveBeenCalled()
+
+    await wrapper.find('[role="alertdialog"] .secondary-button').trigger('click')
+    await nextTick()
+
+    expect(wrapper.find('[role="alertdialog"]').exists()).toBe(false)
+
+    await wrapper.find('.danger-button').trigger('click')
+    await nextTick()
+    await wrapper.find('[role="alertdialog"] .primary-button').trigger('click')
+    await flushPromises()
+
+    expect(deleteAdminUserMock).toHaveBeenCalledWith(1)
+    expect(wrapper.text()).toContain('Usuario eliminado correctamente.')
   })
 
   it('renders timer view', async () => {

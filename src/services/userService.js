@@ -1,6 +1,26 @@
 import { userApiClient } from './http'
 
 const userService = {
+  async getAdminUsers() {
+    const { data } = await userApiClient.get('/admin/users')
+    return data?.data || data?.users || data?.items || data
+  },
+
+  async createAdminUser(payload) {
+    const { data } = await userApiClient.post('/admin/users', {
+      name: payload?.name || '',
+      email: payload?.email || '',
+      password: payload?.password || '',
+      role: payload?.role || 'USER',
+    })
+    return data?.data || data?.user || data
+  },
+
+  async deleteAdminUser(id) {
+    const { data } = await userApiClient.delete(`/admin/users/${id}`)
+    return data?.data || data
+  },
+
   async getUserById(id) {
     const { data } = await userApiClient.get(`/users/${id}`)
     return data?.data || data?.user || data?.profile || data
