@@ -41,7 +41,7 @@ describe('MainLayout', () => {
       },
     })
 
-    expect(wrapper.text()).toContain('Mi perfil')
+    expect(wrapper.text()).toContain('Mi Perfil')
     expect(wrapper.text()).toContain('Dani')
 
     await wrapper.find('.mobile-menu-button').trigger('click')
@@ -88,5 +88,26 @@ describe('MainLayout', () => {
     })
 
     expect(wrapper.text()).toContain('Detalle de marca personal')
+  })
+
+  it('renders the users admin title', async () => {
+    routeMock.name = 'admin-users'
+    routeMock.fullPath = '/admin/users'
+
+    const wrapper = mount(MainLayout, {
+      global: {
+        stubs: {
+          SidebarMenu: {
+            template: '<div class="sidebar-stub">{{ isMobileOpen }}</div>',
+            props: ['isMobileOpen'],
+          },
+          RouterView: {
+            template: '<div class="router-view-stub" />',
+          },
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('Gestionar Usuarios')
   })
 })
