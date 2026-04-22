@@ -329,16 +329,16 @@ describe('dashboard views', () => {
   it('users admin view lists, creates and confirms before deleting users', async () => {
     getAdminUsersMock
       .mockResolvedValueOnce([
-        { id: 2, name: 'Zoe', email: 'zoe@example.com', role: 'USER' },
+        { id: 7, name: 'Zoe', email: 'zoe@example.com', role: 'USER' },
         { id: 1, name: 'Ana', email: 'ana@example.com', role: 'ADMIN' },
       ])
       .mockResolvedValueOnce([
         { id: 1, name: 'Ana', email: 'ana@example.com', role: 'ADMIN' },
-        { id: 2, name: 'Zoe', email: 'zoe@example.com', role: 'USER' },
+        { id: 7, name: 'Zoe', email: 'zoe@example.com', role: 'USER' },
         { id: 3, name: 'New', email: 'new@example.com', role: 'USER' },
       ])
       .mockResolvedValueOnce([
-        { id: 2, name: 'Zoe', email: 'zoe@example.com', role: 'USER' },
+        { id: 7, name: 'Zoe', email: 'zoe@example.com', role: 'USER' },
         { id: 3, name: 'New', email: 'new@example.com', role: 'USER' },
       ])
     const UsersAdminView = (await import('@/views/UsersAdminView.vue')).default
@@ -349,10 +349,12 @@ describe('dashboard views', () => {
 
     expect(wrapper.text().indexOf('Ana')).toBeLessThan(wrapper.text().indexOf('Zoe'))
     expect(wrapper.text()).toContain('ana@example.com · ADMIN')
+    expect(wrapper.findAll('.admin-item')[1].text()).not.toContain('Eliminar')
 
     await wrapper.find('#user-name-search').setValue('zo')
     expect(wrapper.findAll('.admin-item')).toHaveLength(1)
     expect(wrapper.find('.admin-item').text()).toContain('Zoe')
+    expect(wrapper.find('.danger-button').exists()).toBe(false)
 
     await wrapper.find('#user-name-search').setValue('')
     await wrapper.find('#user-role-filter').setValue('ADMIN')

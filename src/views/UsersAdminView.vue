@@ -50,6 +50,7 @@
 
             <div class="inline-actions">
               <button
+                v-if="!isCurrentUser(user)"
                 class="secondary-button align-start danger-button"
                 type="button"
                 :disabled="isDeletingUser"
@@ -117,7 +118,9 @@
 import { computed, onMounted, ref } from 'vue'
 import UserAdminForm from '@/components/UserAdminForm.vue'
 import userService from '@/services/userService'
+import { useAuthStore } from '@/stores/authStore'
 
+const authStore = useAuthStore()
 const users = ref([])
 const userFormSection = ref(null)
 const isLoadingUsers = ref(false)
@@ -222,6 +225,11 @@ async function confirmDeleteUser() {
 
 function getUserId(user) {
   return user?.id || user?._id || user?.userId || ''
+}
+
+function isCurrentUser(user) {
+  const currentUserId = authStore.user?.id || authStore.user?._id || authStore.user?.userId || ''
+  return String(getUserId(user)) === String(currentUserId)
 }
 
 function getUserName(user) {
