@@ -13,6 +13,7 @@ import PRsView from '@/views/PRsView.vue'
 import PRDetailView from '@/views/PRDetailView.vue'
 import AdminWodsView from '@/views/AdminWodsView.vue'
 import AdminProposalsView from '@/views/AdminProposalsView.vue'
+import UsersAdminView from '@/views/UsersAdminView.vue'
 
 const routes = [
   {
@@ -90,6 +91,12 @@ const routes = [
         path: 'admin/proposals',
         name: 'admin-proposals',
         component: AdminProposalsView,
+        meta: { requiresAuth: true, roles: ['ADMIN'] },
+      },
+      {
+        path: 'admin/users',
+        name: 'admin-users',
+        component: UsersAdminView,
         meta: { requiresAuth: true, roles: ['ADMIN'] },
       },
     ],
