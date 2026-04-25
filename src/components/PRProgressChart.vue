@@ -13,8 +13,26 @@
 
     <div v-else class="pr-chart-shell">
       <svg class="pr-chart" viewBox="0 0 360 200" role="img" aria-label="Evolución del peso">
-        <line x1="36" y1="20" x2="36" y2="164" class="chart-axis" />
-        <line x1="36" y1="164" x2="336" y2="164" class="chart-axis" />
+        <template v-for="label in yAxisLabels" :key="label.key">
+          <line
+            :x1="CHART_LEFT"
+            :y1="label.y"
+            :x2="CHART_RIGHT"
+            :y2="label.y"
+            class="chart-grid-line"
+          />
+          <text
+            :x="CHART_LEFT - 8"
+            :y="label.y + 3"
+            text-anchor="end"
+            class="chart-y-label"
+          >
+            {{ label.text }}
+          </text>
+        </template>
+
+        <line :x1="CHART_LEFT" :y1="CHART_TOP" :x2="CHART_LEFT" :y2="CHART_BOTTOM" class="chart-axis" />
+        <line :x1="CHART_LEFT" :y1="CHART_BOTTOM" :x2="CHART_RIGHT" :y2="CHART_BOTTOM" class="chart-axis" />
         <polyline :points="polylinePoints" class="chart-line" />
         <circle
           v-for="point in normalizedPoints"
@@ -28,7 +46,7 @@
           v-for="point in xAxisPoints"
           :key="`${point.id}-label`"
           :x="point.x"
-          y="184"
+          :y="CHART_BOTTOM + 20"
           text-anchor="middle"
           class="chart-x-label"
         >
@@ -51,6 +69,12 @@
 
 <script setup>
 import { computed } from 'vue'
+
+const CHART_LEFT = 56
+const CHART_RIGHT = 336
+const CHART_TOP = 20
+const CHART_BOTTOM = 164
+const CHART_HEIGHT = CHART_BOTTOM - CHART_TOP
 
 const props = defineProps({
   history: {
@@ -88,8 +112,8 @@ const normalizedPoints = computed(() => {
 
   return records.map((record, index) => ({
     ...record,
-    x: 36 + (300 * index) / maxIndex,
-    y: 164 - ((record.weight - minWeight) / safeRange) * 120,
+    x: CHART_LEFT + ((CHART_RIGHT - CHART_LEFT) * index) / maxIndex,
+    y: CHART_BOTTOM - ((record.weight - minWeight) / safeRange) * CHART_HEIGHT,
     shortDate: formatShortDate(record.createdAt),
     isPeak: record.id === peakRecordId,
   }))
@@ -127,6 +151,30 @@ const maxLabel = computed(() => {
   return formatWeight(Math.max(...normalizedPoints.value.map((item) => item.weight)))
 })
 
+const yAxisLabels = computed(() => {
+  if (!normalizedPoints.value.length) {
+    return []
+  }
+
+  const weights = normalizedPoints.value.map((item) => item.weight)
+  const minWeight = Math.min(...weights)
+  const maxWeight = Math.max(...weights)
+  const middleWeight = minWeight + (maxWeight - minWeight) / 2
+
+  return [
+    { key: 'max', value: maxWeight, y: CHART_TOP },
+    { key: 'mid', value: middleWeight, y: CHART_TOP + CHART_HEIGHT / 2 },
+    { key: 'min', value: minWeight, y: CHART_BOTTOM },
+  ]
+    .filter((label, index, labels) =>
+      labels.findIndex((candidate) => Math.abs(candidate.value - label.value) < 0.01) === index,
+    )
+    .map((label) => ({
+      ...label,
+      text: formatAxisWeight(label.value),
+    }))
+})
+
 const peakPoint = computed(() => normalizedPoints.value.find((point) => point.isPeak) || null)
 
 function formatWeight(value) {
@@ -134,6 +182,13 @@ function formatWeight(value) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(value)} kg`
+}
+
+function formatAxisWeight(value) {
+  return new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value)
 }
 
 function formatShortDate(value) {
@@ -169,6 +224,12 @@ function formatLongDate(value) {
   stroke-width: 1.5;
 }
 
+.chart-grid-line {
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+
 .chart-line {
   fill: none;
   stroke: var(--color-accent);
@@ -189,7 +250,8 @@ function formatLongDate(value) {
   stroke-width: 2.5;
 }
 
-.chart-x-label {
+.chart-x-label,
+.chart-y-label {
   fill: var(--color-text-muted);
   font-size: 10px;
 }
@@ -210,5 +272,12 @@ function formatLongDate(value) {
   border-radius: 16px;
   background: rgba(255, 209, 102, 0.12);
   border: 1px solid rgba(255, 209, 102, 0.22);
+}
+
+@media (min-width: 721px) {
+  .pr-chart-shell {
+    max-width: 38rem;
+    margin-inline: auto;
+  }
 }
 </style>
