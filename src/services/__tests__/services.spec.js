@@ -43,7 +43,7 @@ describe('service wrappers', () => {
     userApiClient.put.mockResolvedValueOnce({ data: { data: { id: 3 } } })
 
     await expect(userService.getAdminUsers()).resolves.toEqual([{ id: 0, role: 'ADMIN' }])
-    await expect(userService.createAdminUser({ name: 'Admin', email: 'admin@example.com', password: 'secret', role: 'ADMIN' })).resolves.toEqual({ id: 4 })
+    await expect(userService.createAdminUser({ name: 'Admin', email: 'admin@example.com', role: 'ADMIN' })).resolves.toEqual({ id: 4 })
     await expect(userService.deleteAdminUser(4)).resolves.toBeNull()
     await expect(userService.getUserById(7)).resolves.toEqual({ id: 1 })
     await expect(userService.getProfile()).resolves.toEqual({ id: 2 })
@@ -53,7 +53,6 @@ describe('service wrappers', () => {
     expect(userApiClient.post).toHaveBeenCalledWith('/admin/users', {
       name: 'Admin',
       email: 'admin@example.com',
-      password: 'secret',
       role: 'ADMIN',
     })
     expect(userApiClient.delete).toHaveBeenCalledWith('/admin/users/4')

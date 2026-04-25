@@ -19,11 +19,6 @@
       </div>
 
       <div class="field-group">
-        <label for="admin-user-password">Password</label>
-        <input id="admin-user-password" v-model="form.password" type="password" required />
-      </div>
-
-      <div class="field-group">
         <label for="admin-user-role">Rol</label>
         <select id="admin-user-role" v-model="form.role" required>
           <option value="USER">USER</option>
@@ -53,7 +48,6 @@ const emit = defineEmits(['submit'])
 const form = reactive({
   name: '',
   email: '',
-  password: '',
   role: 'USER',
 })
 
@@ -61,7 +55,6 @@ function submitForm() {
   emit('submit', {
     name: form.name,
     email: form.email,
-    password: form.password,
     role: form.role,
   })
 }

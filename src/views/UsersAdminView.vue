@@ -43,22 +43,22 @@
 
           <div v-if="sortedUsers.length" class="admin-list">
             <article v-for="user in sortedUsers" :key="getUserId(user)" class="admin-item">
-            <div>
-              <strong>{{ user.name || 'Usuario sin nombre' }}</strong>
-              <p>{{ user.email || 'Email no definido' }} · {{ user.role || 'USER' }}</p>
-            </div>
+              <div>
+                <strong>{{ user.name || 'Usuario sin nombre' }}</strong>
+                <p>{{ user.email || 'Email no definido' }} · {{ user.role || 'USER' }}</p>
+              </div>
 
-            <div class="inline-actions">
-              <button
-                v-if="!isCurrentUser(user)"
-                class="secondary-button align-start danger-button"
-                type="button"
-                :disabled="isDeletingUser"
-                @click="handleDeleteUser(user)"
-              >
-                Eliminar
-              </button>
-            </div>
+              <div class="inline-actions">
+                <button
+                  v-if="!isCurrentUser(user)"
+                  class="secondary-button align-start danger-button"
+                  type="button"
+                  :disabled="isDeletingUser"
+                  @click="handleDeleteUser(user)"
+                >
+                  Eliminar
+                </button>
+              </div>
             </article>
           </div>
 
@@ -173,7 +173,7 @@ async function handleCreateUser(payload) {
 
   try {
     await userService.createAdminUser(payload)
-    successMessage.value = 'Usuario creado correctamente.'
+    successMessage.value = 'Usuario creado correctamente. Se ha enviado una contraseña temporal por email.'
     formResetKey.value += 1
     await loadUsers()
   } catch (error) {

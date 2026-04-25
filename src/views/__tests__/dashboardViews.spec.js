@@ -375,7 +375,6 @@ describe('dashboard views', () => {
 
     await wrapper.find('#admin-user-name').setValue('New')
     await wrapper.find('#admin-user-email').setValue('new@example.com')
-    await wrapper.find('#admin-user-password').setValue('secret123')
     await wrapper.find('#admin-user-role').setValue('USER')
     await wrapper.find('form').trigger('submit.prevent')
     await flushPromises()
@@ -383,9 +382,9 @@ describe('dashboard views', () => {
     expect(createAdminUserMock).toHaveBeenCalledWith({
       name: 'New',
       email: 'new@example.com',
-      password: 'secret123',
       role: 'USER',
     })
+    expect(wrapper.text()).toContain('Se ha enviado una contraseña temporal por email.')
 
     await wrapper.find('.danger-button').trigger('click')
     await nextTick()
