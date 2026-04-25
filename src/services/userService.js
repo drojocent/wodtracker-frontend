@@ -10,7 +10,6 @@ const userService = {
     const { data } = await userApiClient.post('/admin/users', {
       name: payload?.name || '',
       email: payload?.email || '',
-      password: payload?.password || '',
       role: payload?.role || 'USER',
     })
     return data?.data || data?.user || data

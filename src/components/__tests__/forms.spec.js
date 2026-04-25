@@ -53,14 +53,12 @@ describe('additional form and card components', () => {
 
     await wrapper.find('#admin-user-name').setValue('Admin User')
     await wrapper.find('#admin-user-email').setValue('admin@example.com')
-    await wrapper.find('#admin-user-password').setValue('secret123')
     await wrapper.find('#admin-user-role').setValue('ADMIN')
     await wrapper.find('form').trigger('submit.prevent')
 
     expect(wrapper.emitted('submit')[0][0]).toEqual({
       name: 'Admin User',
       email: 'admin@example.com',
-      password: 'secret123',
       role: 'ADMIN',
     })
   })
