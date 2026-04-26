@@ -60,7 +60,7 @@
             <span>{{ formatDateTime(result.createdAt) }}</span>
           </li>
         </ul>
-        <p v-else class="muted-text">Todavia no has registrado resultados para este benchmark.</p>
+        <p v-else class="muted-text">Todavía no has registrado resultados para este benchmark.</p>
       </section>
     </aside>
   </div>
