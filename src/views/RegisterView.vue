@@ -20,7 +20,7 @@
         </div>
 
         <div class="field-group">
-          <label for="register-password">Contrasena</label>
+          <label for="register-password">Contraseña</label>
           <input id="register-password" v-model="form.password" type="password" required />
         </div>
 

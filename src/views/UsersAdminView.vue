@@ -147,7 +147,7 @@ const sortedUsers = computed(() =>
   [...filteredUsers.value].sort((left, right) => getUserName(left).localeCompare(getUserName(right), 'es')),
 )
 const emptyUsersMessage = computed(() =>
-  users.value.length ? 'No hay usuarios que coincidan con los filtros.' : 'Todavia no hay usuarios registrados.',
+  users.value.length ? 'No hay usuarios que coincidan con los filtros.' : 'Todavía no hay usuarios registrados.',
 )
 
 onMounted(loadUsers)

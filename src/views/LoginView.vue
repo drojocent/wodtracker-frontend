@@ -1,8 +1,8 @@
 <template>
   <section class="page-shell auth-page">
     <div class="auth-card">
-      <h1>Iniciar sesion</h1>
-      <p>Accede a WODTracker para consultar tu WOD del dia, registrar resultados y seguir tu progreso.</p>
+      <h1>Iniciar sesión</h1>
+      <p>Accede a WODTracker para consultar tu WOD del día, registrar resultados y seguir tu progreso.</p>
 
       <div v-if="statusMessage" class="status-message success">
         {{ statusMessage }}
@@ -19,7 +19,7 @@
         </div>
 
         <div class="field-group">
-          <label for="password">Contrasena</label>
+          <label for="password">Contraseña</label>
           <input id="password" v-model="form.password" type="password" required />
         </div>
 
@@ -55,7 +55,7 @@ const form = reactive({
 })
 
 const statusMessage = computed(() =>
-  route.query.registered === '1' ? 'Cuenta creada correctamente. Ya puedes iniciar sesion.' : '',
+  route.query.registered === '1' ? 'Cuenta creada correctamente. Ya puedes iniciar sesión.' : '',
 )
 
 async function handleSubmit() {
