@@ -57,5 +57,9 @@ function submitForm() {
     email: form.email,
     role: form.role,
   })
+
+  form.name = ''
+  form.email = ''
+  form.role = 'USER'
 }
 </script>

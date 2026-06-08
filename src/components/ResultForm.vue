@@ -52,6 +52,10 @@ function submitForm() {
     wodId: props.wodId,
     result: form.score,
   })
+
+  if (!isEditing.value) {
+    form.score = ''
+  }
 }
 
 watch(
