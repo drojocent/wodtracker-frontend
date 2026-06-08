@@ -103,6 +103,10 @@ function submitForm() {
     description: form.description,
     approved: true,
   })
+
+  if (!isEditing.value) {
+    resetForm()
+  }
 }
 
 function formatDateInput(value) {
@@ -117,5 +121,12 @@ function formatDateInput(value) {
   }
 
   return date.toISOString().slice(0, 10)
+}
+
+function resetForm() {
+  form.title = ''
+  form.type = ''
+  form.date = ''
+  form.description = ''
 }
 </script>

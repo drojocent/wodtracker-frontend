@@ -46,6 +46,9 @@ describe('additional form and card components', () => {
       type: 'AMRAP',
       description: 'Workout',
     })
+    expect(wrapper.find('#proposal-title').element.value).toBe('')
+    expect(wrapper.find('#proposal-type').element.value).toBe('')
+    expect(wrapper.find('#proposal-description').element.value).toBe('')
   })
 
   it('emits admin user creation payloads', async () => {
@@ -61,6 +64,9 @@ describe('additional form and card components', () => {
       email: 'admin@example.com',
       role: 'ADMIN',
     })
+    expect(wrapper.find('#admin-user-name').element.value).toBe('')
+    expect(wrapper.find('#admin-user-email').element.value).toBe('')
+    expect(wrapper.find('#admin-user-role').element.value).toBe('USER')
   })
 
   it('renders proposal review details and emits moderation actions', async () => {
@@ -120,6 +126,27 @@ describe('additional form and card components', () => {
       type: 'AMRAP',
       approved: true,
     })
+    expect(form.find('#wod-title').element.value).toBe('Murph 2')
+  })
+
+  it('clears the create wod form after submit', async () => {
+    const wrapper = mount(WodForm)
+
+    await wrapper.find('#wod-title').setValue('Fran')
+    await wrapper.find('#wod-type').setValue('FOR_TIME')
+    await wrapper.find('#wod-date').setValue('2026-04-20')
+    await wrapper.find('#wod-description').setValue('21-15-9 thrusters y pull-ups')
+    await wrapper.find('form').trigger('submit.prevent')
+
+    expect(wrapper.emitted('submit')[0][0]).toMatchObject({
+      name: 'Fran',
+      type: 'FOR_TIME',
+      description: '21-15-9 thrusters y pull-ups',
+    })
+    expect(wrapper.find('#wod-title').element.value).toBe('')
+    expect(wrapper.find('#wod-type').element.value).toBe('')
+    expect(wrapper.find('#wod-date').element.value).toBe('')
+    expect(wrapper.find('#wod-description').element.value).toBe('')
   })
 
   it('emits personal record payloads and renders the progress chart', async () => {

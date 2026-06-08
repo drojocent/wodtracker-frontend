@@ -89,6 +89,10 @@ function submitForm() {
     description: form.description,
     type: form.type,
   })
+
+  if (!isEditing.value) {
+    resetForm()
+  }
 }
 
 watch(
@@ -100,4 +104,10 @@ watch(
   },
   { immediate: true },
 )
+
+function resetForm() {
+  form.name = ''
+  form.description = ''
+  form.type = ''
+}
 </script>
